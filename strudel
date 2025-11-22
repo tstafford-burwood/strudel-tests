@@ -1,0 +1,58 @@
+// --- Walker & Royce Style House Progression (64 Bars) ---
+// Set the tempo based on Strudel documentation: setcpm(BPM / Beats Per Cycle)
+// 127 BPM / 4 beats per cycle (4/4 time signature)
+setcpm(127 / 4)
+
+// NOTE: The progression is controlled by checking the environment's global 'bar' 
+// variable within the .gain() function, which is the most reliable method 
+// given environment constraints.
+
+// 0. Ambient/Reverb FX (Always present, subtle texture)
+// Bars 1-64
+$: s("noise * 16").lpf(500).room(.6).hpf(100).gain(() => (bar < 65) ? 0.2 : 0)
+
+// 1. Sub Bass Line (G Minor Scale, Simple Loop)
+// Bars 1-60 (Fades out just before the very end)
+// Pattern: G0 (0) for 4 steps, then F0 (-2) for 4 steps. Simple, deep groove.
+$: n("<0:4 -2:4>").s("sub").lpf(100).legato(1.2).room(.1)
+   .gain(() => (bar >= 1 && bar < 61) ? 0.8 : 0)
+
+// 2. Main Kick Drum (The 4/4 engine)
+// Active during Build (9-32) and Drop/Groove (41-56)
+$: s("[bd] * 4").bank("tr909").dec(.25)
+   // Excludes the Breakdown (33-40) and Outro (57-64)
+   .gain(() => ((bar >= 9 && bar < 33) || (bar >= 41 && bar < 57)) ? 1.0 : 0)
+
+// 3. Off-Beat Hi-Hats (The main groove element)
+// Bars 9-64 (Active through most of the track to maintain rhythm)
+// Pattern: h on 2nd and 4th 16th notes with slight time shift for swing.
+$: s("h _ [h:1.5] _").bank("tr909").lpf(8000).hpf(400)
+   .gain(() => (bar >= 9 && bar < 65) ? 0.5 : 0)
+
+// 4. Clap/Snare (Classic 2 and 4 backbeat)
+// Active during Main Groove (17-32) and Drop/Groove (41-56)
+$: s("~ [cp] ~ [cp]").bank("tr909")
+   .gain(() => ((bar >= 17 && bar < 33) || (bar >= 41 && bar < 57)) ? 0.9 : 0)
+
+// 5. Short, Filtered Synth Stab (The melodic hook)
+// Bars 17-56 (Enters with the main groove, keeps the energy through the drop)
+// Simple, repetitive notes with delay and distortion (shape).
+$: n("<g4 f#4 f4 e4>").s("sawtooth").delay(.2).lpf(3000).room(.4).shape(.1)
+   .gain(() => (bar >= 17 && bar < 57) ? 0.6 : 0)
+
+// 6. Short Noise Riser (Prepares for the Main Groove/Drop)
+// Bars 31-32 (Right before the drop at bar 33)
+$: s("noise").degrade().hpf(1000).lpf(8000).speed("<1/8 1/4 1/2 1>").room(.4)
+   .gain(() => (bar >= 31 && bar < 33) ? 0.7 : 0)
+
+// 7. Open Hi-Hat (Adds a touch of air and bounce)
+// Active only during the Drop sections to increase rhythm complexity
+// Bars 41-56
+$: s("~ [oh] ~ ~").bank("tr909").lpf(10000)
+   .gain(() => (bar >= 41 && bar < 57) ? 0.4 : 0)
+
+// 8. Fast Clap/Snare Outro (2x tempo)
+// Active during Outro (57-64)
+// This pattern plays 4 claps per cycle, effectively doubling the rhythm.
+$: s("cp * 8").bank("tr909")
+   .gain(() => (bar >= 57 && bar < 65) ? 0.9 : 0)
